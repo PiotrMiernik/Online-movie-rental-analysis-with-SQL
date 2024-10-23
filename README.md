@@ -1,1 +1,51 @@
-# Online-movie-rental-analysis-with-SQL
+- About the Dataset:
+  - Data source: datacamp.com
+  - Database: PostgreSQL with five tables: customers, movies, rentals, actors, and actsin
+  - Analysis environment: DBeaver IDE
+  - Data origin: Fictional online movie rental company
+  - Tables and Columns:
+    - customers:
+      - customer_id: Unique identifier for each customer
+      - name: Customer's name
+      - country: Customer's country
+      - gender: Customer's gender
+      - date_of_birth: Customer's date of birth
+      - created_at: Date when the account was created
+    - movies:
+      - movie_id: Unique identifier for each movie
+      - title: Movie title
+      - genre: Movie genre
+      - runtime: Movie runtime (consider mentioning minutes here)
+      - release_year: Movie release year
+      - rental_price: Rental price
+    - rentals:
+      - renting_id: Unique identifier for each rental
+      - customer_id: Foreign key referencing the customers table
+      - movie_id: Foreign key referencing the movies table
+      - rating: Rating given by the customer (1-10)
+      - rental_date: Date of rental
+    - actors:
+      - actor_id: Unique identifier for each actor
+      - name: Actor's name
+      - year_of_birth: Actor's year of birth
+      - nationality: Actor's nationality
+      - gender: Actor's gender
+    - acts_in:
+      - actsin_id: Unique identifier for each actor-movie relationship
+      - movie_id: Foreign key referencing the movies table
+      - actor_id: Foreign key referencing the actors table
+
+- Goal of the Analysis:
+  - Assess the quality of data collected by the company.
+  - Answer business questions related to customers and their preferences:
+      - What are the top 5 most popular movie genres among customers from a specific country?
+      - Which actors are most frequently rented by customers in different age ranges?
+      - What is the average rating for movies in each genre, and what is the average rating for movies with a specific actor?
+      - Which customers rent the most movies per year?
+      - What percentage of customers rented at least one movie every month in a given year?
+  - Answer business questions related to movies and their popularity:
+      - Which movies were most frequently rented in each quarter of a given year?
+      - What is the correlation between movie length and its rating? Does a correlation differ depending on gender and movie genre?
+      - Which movies had the biggest drop in popularity compared to the previous year?
+      - What are the top 10 most popular actor pairs (i.e., actors who frequently appear together in rented movies)?
+      - How has the average movie rating changed over time?
