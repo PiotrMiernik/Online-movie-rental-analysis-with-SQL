@@ -1,0 +1,43 @@
+{
+	"folders": {},
+	"connections": {
+		"postgres-jdbc-192b3c4ba61-1af663b9b0543bca": {
+			"provider": "postgresql",
+			"driver": "postgres-jdbc",
+			"name": "postgres",
+			"save-password": true,
+			"configuration": {
+				"host": "localhost",
+				"port": "5432",
+				"database": "postgres",
+				"url": "jdbc:postgresql://localhost:5432/postgres",
+				"configurationType": "MANUAL",
+				"home": "postgresql-x64-16",
+				"type": "dev",
+				"closeIdleConnection": true,
+				"provider-properties": {
+					"@dbeaver-show-non-default-db@": "false",
+					"@dbeaver-chosen-role@": ""
+				},
+				"auth-model": "native"
+			}
+		}
+	},
+	"virtual-models": {"postgres-jdbc-192b3c4ba61-1af663b9b0543bca":{"postgres":{"public":{"@properties":{"erd.diagram.state":{"serialized":"\u003cdiagram version\u003d\"1\" name\u003d\"empty\" time\u003d\"202410221312\"\u003e\u003centities\u003e\u003cdata-source id\u003d\"postgres-jdbc-192b3c4ba61-1af663b9b0543bca\"\u003e\u003centity id\u003d\"1\" name\u003d\"actors\" fq-name\u003d\"public.actors\" order\u003d\"0\" x\u003d\"435\" y\u003d\"461\"\u003e\u003cpath name\u003d\"public\"/\u003e\u003cpath name\u003d\"postgres\"/\u003e\u003c/entity\u003e\u003centity id\u003d\"2\" name\u003d\"actsin\" fq-name\u003d\"public.actsin\" order\u003d\"1\" x\u003d\"450\" y\u003d\"272\"\u003e\u003cpath name\u003d\"public\"/\u003e\u003cpath name\u003d\"postgres\"/\u003e\u003c/entity\u003e\u003centity id\u003d\"3\" name\u003d\"customers\" fq-name\u003d\"public.customers\" order\u003d\"2\" x\u003d\"125\" y\u003d\"209\"\u003e\u003cpath name\u003d\"public\"/\u003e\u003cpath name\u003d\"postgres\"/\u003e\u003c/entity\u003e\u003centity id\u003d\"4\" name\u003d\"movies\" fq-name\u003d\"public.movies\" order\u003d\"3\" x\u003d\"679\" y\u003d\"241\"\u003e\u003cpath name\u003d\"public\"/\u003e\u003cpath name\u003d\"postgres\"/\u003e\u003c/entity\u003e\u003centity id\u003d\"5\" name\u003d\"renting\" fq-name\u003d\"public.renting\" order\u003d\"4\" x\u003d\"423\" y\u003d\"50\"\u003e\u003cpath name\u003d\"public\"/\u003e\u003cpath name\u003d\"postgres\"/\u003e\u003c/entity\u003e\u003c/data-source\u003e\u003c/entities\u003e\u003crelations\u003e\u003crelation name\u003d\"vfk_actors_actsin_65605\" type\u003d\"vfk\" pk-ref\u003d\"2\" fk-ref\u003d\"1\"/\u003e\u003crelation name\u003d\"vfk_movies_actsin_65605\" type\u003d\"vfk\" pk-ref\u003d\"2\" fk-ref\u003d\"4\"/\u003e\u003crelation name\u003d\"vfk_movies_renting_65610\" type\u003d\"vfk\" pk-ref\u003d\"5\" fk-ref\u003d\"4\"/\u003e\u003crelation name\u003d\"vfk_customers_renting_65610\" type\u003d\"vfk\" pk-ref\u003d\"5\" fk-ref\u003d\"3\"/\u003e\u003c/relations\u003e\u003c/diagram\u003e"}},":customers":{"foreign-keys":[{"entity":"node://Project 2 - Movie Rental SQL/datasources/postgres-jdbc-192b3c4ba61-1af663b9b0543bca/database/postgres_5/schema/public_2200/table/renting_65610","constraint":"renting_VK","attributes":{"customer_id":"customer_id"}}]},":movies":{"foreign-keys":[{"entity":"node://Project 2 - Movie Rental SQL/datasources/postgres-jdbc-192b3c4ba61-1af663b9b0543bca/database/postgres_5/schema/public_2200/table/renting_65610","constraint":"renting_VK","attributes":{"movie_id":"movie_id"}},{"entity":"node://Project 2 - Movie Rental SQL/datasources/postgres-jdbc-192b3c4ba61-1af663b9b0543bca/database/postgres_5/schema/public_2200/table/renting_65610","constraint":"renting_VK","attributes":{"movie_id":"movie_id"}},{"entity":"node://Project 2 - Movie Rental SQL/datasources/postgres-jdbc-192b3c4ba61-1af663b9b0543bca/database/postgres_5/schema/public_2200/table/actsin_65605","constraint":"actsin_VK","attributes":{"movie_id":"movie_id"}},{"entity":"node://Project 2 - Movie Rental SQL/datasources/postgres-jdbc-192b3c4ba61-1af663b9b0543bca/database/postgres_5/schema/public_2200/table/actsin_65605","constraint":"actsin_VK","attributes":{"movie_id":"movie_id"}},{"entity":"node://Project 2 - Movie Rental SQL/datasources/postgres-jdbc-192b3c4ba61-1af663b9b0543bca/database/postgres_5/schema/public_2200/table/renting_65674","constraint":"renting_VK","attributes":{"movie_id":"movie_id"}}]},":renting":{"constraints":{"renting_VK":{"type":"vpk","attributes":["customer_id"]},"renting_VK":{"type":"vpk","attributes":["movie_id"]}}},":actors":{"foreign-keys":[{"entity":"node://Project 2 - Movie Rental SQL/datasources/postgres-jdbc-192b3c4ba61-1af663b9b0543bca/database/postgres_5/schema/public_2200/table/actsin_65605","constraint":"actsin_VK","attributes":{"actor_id":"actor_id"}}]},":actsin":{"constraints":{"actsin_VK":{"type":"vpk","attributes":["movie_id"]}}}}}}},
+	"connection-types": {
+		"dev": {
+			"name": "Development",
+			"color": "255,255,255",
+			"description": "Regular development database",
+			"auto-commit": true,
+			"confirm-execute": false,
+			"confirm-data-change": false,
+			"smart-commit": false,
+			"smart-commit-recover": false,
+			"auto-close-transactions": true,
+			"close-transactions-period": 1800,
+			"auto-close-connections": true,
+			"close-connections-period": 14400
+		}
+	}
+}
