@@ -1,10 +1,4 @@
 /*
- 	- Business questions related to customer and their preferencies:		
- 		What are the top 5 most popular movie genres among customers from a specific country?
-		Which actors are most frequently rented by customers in different age ranges?
-		What is the average rating for movies in each genre, and what is the average rating for movies with a specific actor?
-		Which customers rent the most movies per year?
-		What percentage of customers rented at least one movie every month in a given year?
 	- Business questions related to movies and their popularity
 		Which movies were most frequently rented in each quarter of a given year?
 		What is the correlation between movie length and its rating? Does a correlation differ depending on gender and movie genre?
@@ -13,9 +7,9 @@
 		How has the average movie rating changed over time?
  */ 
 
--- What is the quality of data collected by the company? (duplicates, missing values, outliers, data consistency and types)
+-- What is the quality of data collected by the company? (duplicates, missing values, outliers, data consistency and types) 
 
--- Duplicates
+	-- Duplicates
 
 select count(*)
 from renting as r
@@ -37,7 +31,7 @@ from actors as a
 group by a."name", a.year_of_birth, a.nationality, a.gender 
 having count(*) > 1;
 
--- There is one duplicate in actors table. Which one?
+	-- There is one duplicate in actors table. Which one?
 
 SELECT a1.*
 FROM actors AS a1
@@ -47,10 +41,10 @@ JOIN (
   GROUP BY name, year_of_birth, nationality, gender
   HAVING COUNT(*) > 1
 ) AS a
-ON a1.name = a.name  -- Only check for a match on 'name'
+ON a1.name = a.name
 ORDER BY name;
 
--- Removing the duplicated row
+	-- Removing the duplicated row
 
 with duplicates as (
 	select a."name", a.year_of_birth, a.nationality, a.gender,
@@ -69,7 +63,7 @@ from actsin as ac
 group by ac.movie_id, ac.actor_id 
 having count(*) > 1;
 
--- missing values analysis
+	-- missing values analysis
  
 select *
 from renting as r
@@ -82,7 +76,7 @@ where rating is null;
 select count(*)
 from renting as r;
 
--- There is 250 out of total 578 rows with null values in 'rating' column. Customers should be encouraged to rate the movies they rent more often
+	-- There is 250 out of total 578 rows with null values in 'rating' column. Customers should be encouraged to rate the movies they rent more often
 
 select *
 from customers as c
@@ -96,10 +90,10 @@ select *
 from actors as a
 where a."name" is null or a.year_of_birth is null or a.nationality is null or a.gender is null;
 
--- Two rows in the actors table have null values in the 'year_of_birth' and 'nationality' columns.
--- No additional information about these actors could be found online, so the table cannot be completed.
+	-- Two rows in the actors table have null values in the 'year_of_birth' and 'nationality' columns.
+	-- No additional information about these actors could be found online, so the table cannot be completed.
 
--- Outliers and data consistency
+	-- Outliers and data consistency
 
 select *
 from renting as r
@@ -150,12 +144,10 @@ from movies as m;
 select distinct genre
 from movies as m;
 
-select 
-	distinct a.gender
+select distinct a.gender
 from actors as a;
 
-select
-	distinct a.nationality 
+select distinct a.nationality 
 from actors as a;
 
 select 
@@ -167,9 +159,9 @@ select *
 from actors as a
 where a."name" like '%[0-9]%' or a."name" like '%,%' or a."name" like '%;%';
 
--- There is no outliers or error data values in the database. Data are consistent as well. Great job data engineers!
+	-- There is no outliers or error data values in the database. Data are consistent as well. Great job data engineers!
 
--- Data types checkout
+	-- Data types checkout
 
 select column_name, data_type
 from information_schema.columns
@@ -190,6 +182,111 @@ where table_name = 'actors';
 select column_name, data_type
 from information_schema.columns
 where table_name = 'actsin';
+
+	-- All data types are correct
+
+-- Business questions related to customer and their preferencies:
+
+-- What are the top 3 most popular movie genres among customers from a specific country?
+
+select
+	m.genre,
+	count(*) as num_of_rentals	 
+from renting as r
+left join movies as m
+on r.movie_id = m.movie_id
+left join customers as c
+on r.customer_id = c.customer_id 
+group by m.genre
+order by count(*) desc 
+limit 3;
+
+	-- In general top 3 most popular movie genre are drama (319 rentals), SF&Fantasy (95) and comedy (69). The company needs more drama!
+
+with top_genre as (
+	select
+		c.country,
+		m.genre,
+		count(*) as num_of_rentals,
+		row_number() over (partition by c.country order by count(*) desc) as rank_genre 
+	from renting as r
+	left join movies as m
+	on r.movie_id = m.movie_id
+	left join customers as c
+	on r.customer_id = c.customer_id
+	group by m.genre, c.country
+)
+select
+	country,
+	genre,
+	num_of_rentals	
+from top_genre
+where rank_genre <= 3 and
+country = 'Poland';
+	
+	-- with above query we can check top 3 (5/10/...) genres for different countries
+
+
+-- Which actors are most frequently rented by young customers (under 30)?
+
+select
+	a."name", 
+	count(*) as num_of_rentals
+from renting as r
+inner join customers as c
+on r.customer_id = c.customer_id
+inner join movies as m
+on r.movie_id = m.movie_id 
+inner join actsin as ac
+on m.movie_id = ac.movie_id 
+inner join actors as a 
+on ac.actor_id = a.actor_id
+where (date_part('year', now()) - date_part('year', c.date_of_birth)) < 30
+group by a."name"
+order by num_of_rentals desc 
+limit 3;
+	
+	-- Most frequently rented actors for customers under 30 are: Emma Watson, Daniel Radcliffe and Rupert Grint. Harry Potter rules!
+		
+
+-- What is the average rating for movies in each genre (with number of renting > 10), and what is the average rating for english-speaking and non-english speaking actors?
+
+select
+	m.genre,
+	count(*),
+	round(AVG(r.rating), 2) as avg_rating
+from renting as r
+inner join movies as m
+on r.movie_id = m.movie_id
+group by m.genre
+having count(*) > 10
+order by avg_rating desc;
+
+	-- Action&Adventure movies have the highest rating (9.09) and Mystery&Suspense the lowest (6.83). The company needs more high quality detective stories!
+
+select
+	case 
+		when a.nationality in ('Australia', 'British', 'Canada', 'Ireland', 'USA') then 'english'
+		else 'non_english' 
+	end as language_group,
+	round(AVG(r.rating), 2) as avg_rating
+from renting as r
+inner join movies as m
+on r.movie_id = m.movie_id 
+inner join actsin as ac
+on m.movie_id = ac.movie_id 
+inner join actors as a
+on ac.actor_id = a.actor_id
+group by language_group;
+
+	-- Non-English speaking actors appear in movies with a slightly higher rating (8.49) then English-speaking one (7.89). But do people truly prefer art over entertainment? 
+		
+
+-- Which customers rent the most movies per year?
+		
+
+-- What percentage of customers rented at least one movie every month in a given year?
+
 
 
 
