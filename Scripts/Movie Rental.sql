@@ -1,11 +1,4 @@
-/*
-	- Business questions related to movies and their popularity
-		Which movies were most frequently rented in each quarter of a given year?
-		What is the correlation between movie length and its rating? Does a correlation differ depending on gender and movie genre?
-		Which movies had the biggest drop in popularity compared to the previous year?
-		What are the top 10 most popular actor pairs (i.e., actors who frequently appear together in rented movies)?
-		How has the average movie rating changed over time?
- */ 
+ 
 
 -- What is the quality of data collected by the company? (duplicates, missing values, outliers, data consistency and types) 
 
@@ -279,13 +272,123 @@ inner join actors as a
 on ac.actor_id = a.actor_id
 group by language_group;
 
-	-- Non-English speaking actors appear in movies with a slightly higher rating (8.49) then English-speaking one (7.89). But do people truly prefer art over entertainment? 
-		
+	-- Non-English speaking actors appear in movies with a slightly higher rating (8.49) then English-speaking one (7.89). 
+	-- But do people truly prefer art over entertainment? Let's find out!
 
--- Which customers rent the most movies per year?
-		
+with movie_stats as (
+	select 
+		r.movie_id,
+		avg(r.rating) as avg_rating,
+		count(*) as num_rentings
+	from renting as r
+	group by r.movie_id
+)
+select
+	corr(avg_rating, num_rentings) as correlation
+from movie_stats;
 
--- What percentage of customers rented at least one movie every month in a given year?
+	-- Correlation coefficient equals 0.13 - there is no lineral relationship between rating and number of rentals
+	-- But maybe relation between these two variables is mediated by another features like customer gender or movie genre? 
+
+with movie_stats as (
+	select
+		c.gender,
+		r.movie_id,
+		avg(r.rating) as avg_rating,
+		count(*) as num_rentings
+	from renting as r
+	inner join customers as c on r.customer_id = c.customer_id
+	group by r.movie_id, c.gender
+)
+select
+	gender,
+	corr(avg_rating, num_rentings) as correlation
+from movie_stats
+group by gender;
+
+	--	Correlation coefficients equal - 0.16 for female and 0.05 for male
+
+with movie_stats as (
+	select
+		m.genre,
+		r.movie_id,
+		avg(r.rating) as avg_rating,
+		count(*) as num_rentings
+	from renting as r
+	inner join movies as m on r.movie_id = m.movie_id
+	group by r.movie_id, m.genre 
+)
+select
+	count(*),
+	genre,
+	corr(avg_rating, num_rentings) as correlation
+from movie_stats 
+group by genre
+having count(*) > 5
+order by correlation desc;
+
+/*
+	In the query above, I only considered correlations for film genres with more than 5 rentals. Comedies have a correlation coefficient of 0.71, 
+	indicating a fairly strong positive relationship between rating and number of rentals. 
+	For the remaining genres, correlations are close to 0. This is an interesting insight!
+*/ 	
+
+-- Which customers rent the most movies in each year?
+
+with customer_ranking as (
+	select
+		date_part('year', date_renting) as year_of_renting,
+		c.name,
+		count(*) as num_of_rentals,
+		dense_rank() over (partition by date_part('year', r.date_renting) order by count(*) desc) as ranking  
+	from renting r 
+	inner join customers as c
+	on r.customer_id = c.customer_id
+	group by c.name, year_of_renting
+)
+select *
+from customer_ranking
+where ranking < 4;
+
+	-- with above query we can check the company's best customers by number of rentals (top 3/5/10/...) in every year 
+
+-- What percentage of customers rented at least one movie in each year?
+
+with customer_one as(
+	select
+		r.customer_id,
+		date_part('year', r.date_renting) as year_of_renting,
+		count(*) as num_of_rentings 
+	from renting as r
+	group by r.customer_id, year_of_renting
+	having count(*) >= 1
+),
+total_customers as (
+	select 
+		count(distinct r.customer_id) as num_customers
+	from renting as r
+)
+select
+	year_of_renting,
+	count(customer_one.customer_id)::float / total_customers.num_customers * 100 as perc_of_customers
+from customer_one, total_customers
+group by year_of_renting, total_customers.num_customers 
+order by year_of_renting;
+
+	
+	-- For 2017 there was 33 % of customers withe at least 
+
+-- Business questions related to movies and their popularity
+
+-- Which movies were most frequently rented in each quarter of a given year?
+
+-- What is the correlation between movie length and its rating? Does a correlation differ depending on gender and movie genre?
+
+-- Which movies had the biggest drop in popularity compared to the previous year?
+
+-- What are the top 10 most popular actor pairs (i.e., actors who frequently appear together in rented movies)?
+
+-- How has the average movie rating changed over time?
 
 
 
