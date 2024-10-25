@@ -42,7 +42,7 @@
       - Which actors are most frequently rented by customers in different age ranges?
       - What is the average rating for movies in each genre, and what is the average rating for movies with a specific actor?
       - Which customers rent the most movies per year?
-      - What percentage of customers rented at least one movie every month in a given year?
+      - What percentage of customers rented at least ten movies in each year?
   - Answer business questions related to movies and their popularity:
       - Which movies were most frequently rented in each quarter of a given year?
       - What is the correlation between movie length and its rating? Does a correlation differ depending on gender and movie genre?
