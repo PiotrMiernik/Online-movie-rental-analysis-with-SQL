@@ -361,34 +361,172 @@ with customer_one as(
 		count(*) as num_of_rentings 
 	from renting as r
 	group by r.customer_id, year_of_renting
-	having count(*) >= 1
 ),
 total_customers as (
 	select 
-		count(distinct r.customer_id) as num_customers
-	from renting as r
+		count(distinct c.customer_id) as num_customers
+	from customers as c
+	inner join renting as r
+	on c.customer_id = r.customer_id
+	where date_part('year', c.date_account_start) <= date_part('year', r.date_renting)
 )
 select
 	year_of_renting,
-	count(customer_one.customer_id)::float / total_customers.num_customers * 100 as perc_of_customers
+	count(distinct customer_one.customer_id)::float / total_customers.num_customers * 100 as perc_of_customers
 from customer_one, total_customers
 group by year_of_renting, total_customers.num_customers 
 order by year_of_renting;
 
 	
-	-- For 2017 there was 33 % of customers withe at least 
+	-- For 2017, only 33% of customers rented at least one movie. This KPI improved in subsequent years (81% in 2018 and 80% in 2019), but still, about 20% of accounts remain unused. 
+	-- The marketing department should implement a marketing campaign targeting inactive customers. If this does not yield positive results, dormant accounts should be removed from the active database. 
+	-- However, which specific accounts are considered inactive?
+
+select
+	c.customer_id,
+	c.name
+from customers as c
+left join renting as r
+on c.customer_id = r.customer_id 
+and date_part('year', r.date_renting) = 2019
+where r.customer_id is null
+order by c.customer_id;
 
 -- Business questions related to movies and their popularity
 
--- Which movies were most frequently rented in each quarter of a given year?
+-- Which movies were most frequently rented in each month of a year?
 
--- What is the correlation between movie length and its rating? Does a correlation differ depending on gender and movie genre?
+WITH monthly_rentals AS (
+    SELECT
+        COUNT(*) AS num_of_rentals,
+        r.movie_id,
+        date_part('month', r.date_renting) AS month
+    FROM renting AS r
+    GROUP BY r.movie_id, date_part('month', r.date_renting)
+),
+ranked_rentals AS (
+    SELECT
+        mr.movie_id,
+        mr.month,
+        mr.num_of_rentals,
+        RANK() OVER (PARTITION BY mr.month ORDER BY mr.num_of_rentals DESC) AS rank
+    FROM monthly_rentals AS mr
+)
+SELECT
+    m.title,
+    rr.movie_id,
+    rr.month,
+    rr.num_of_rentals
+FROM ranked_rentals AS rr
+LEFT JOIN movies AS m ON rr.movie_id = m.movie_id
+WHERE rr.rank = 1
+ORDER BY rr.month;
+
+	-- Now we know that 'Fair Game' was the most popular movie in January, 'Training Day' was the most popular in September  and 'Harry Potter and the Deathly Hallows' was the most popular in November. 
+	-- The marketing department can use this information to increase advertising effectiveness.
+
+
+-- What is the correlation between movie length number of rentings? Does a correlation differ depending on movie genre?
+
+with movie_stats as (
+	select 
+		r.movie_id,
+		m.runtime,
+		count(*) as num_rentings
+	from renting as r
+	inner join movies as m
+	on r.movie_id = m.movie_id
+	group by r.movie_id, m.runtime
+)
+select
+	corr(runtime, num_rentings) as correlation
+from movie_stats;
+
+	-- Correlation coefficient = 0.14, so there is no linear relation between movie runtime and number of rentals.
+	-- But when we take movie genre into account:
+
+with movie_stats as (
+	select
+		m.genre,
+		r.movie_id,
+		m.runtime,
+		count(*) as num_rentings
+	from renting as r
+	inner join movies as m
+	on r.movie_id = m.movie_id
+	group by r.movie_id, m.runtime, m.genre
+)
+select
+	count(*),
+	genre,
+	corr(runtime, num_rentings) as correlation
+from movie_stats
+group by genre
+having count(*) >=5
+order by correlation desc;
+
+	-- Correlation coefficient = 0.47 for Mystery&Suspense movies and -0.46 for SF&Fantasy movies. The correlation coefficient for other film genres is around 0.
 
 -- Which movies had the biggest drop in popularity compared to the previous year?
 
+with yearly_rentals as (
+	select
+		r.movie_id,
+		date_part('year', r.date_renting) as year,
+		count(*) as num_of_rentals
+	from renting as r
+	group by r.movie_id, date_part('year', r.date_renting)
+),
+rental_change as (
+	select
+		movie_id,
+		year,
+		num_of_rentals,
+		LAG(num_of_rentals) over (partition by movie_id order by year) as previous_year_rentals
+	from yearly_rentals
+)
+select
+	m.title,
+	r_c.movie_id,
+	r_c.year,
+	(previous_year_rentals - num_of_rentals) as drop_in_rentals
+from rental_change as r_c
+left join movies as m
+on r_c.movie_id = m.movie_id
+where previous_year_rentals > num_of_rentals
+order by drop_in_rentals desc
+limit 3;
+
+	-- Three movies with biggest drop in popularity compared to the previous year are: 'Bridget Jones - The Edge of Reason', 'Trainign Day' and 'Harry Potter and the Prisoner of Azkaban'
+
+
 -- What are the top 10 most popular actor pairs (i.e., actors who frequently appear together in rented movies)?
 
--- How has the average movie rating changed over time?
+
+
+-- How has the average movie rating for different genres changed over time?
+
+with genre_yearly_avg as (
+	select
+		m.genre,
+		date_part('year', date_renting) as year,
+		round(AVG(rating), 2) as avg_rating
+	from renting as r 
+	left join movies as m
+	on r.movie_id = m.movie_id 
+	group by date_part('year', date_renting), m.genre
+)
+select
+	genre,
+	year,
+	avg_rating,
+	LAG(avg_rating, 1) over (partition by genre order by year) as previous_avg_rating,
+	avg_rating - LAG(avg_rating, 1) over (partition by genre order by year) as avg_difference
+from genre_yearly_avg
+order by genre, year;
+
+	-- The largest change (drop) in average movie rating was for 'Art House & International' genre between 2018 and 2019 (-2 points on a 1-10 rating scale)
+
 
 
 
