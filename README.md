@@ -47,5 +47,5 @@
       - Which movies were most frequently rented in each quarter of a given year?
       - What is the correlation between movie length and its rating? Does a correlation differ depending on gender and movie genre?
       - Which movies had the biggest drop in popularity compared to the previous year?
-      - What are the top 10 most popular actor pairs (i.e., actors who frequently appear together in rented movies)?
+      - Which movie genres have the highest rental income, and what is the income for each movie?
       - How has the average movie rating changed over time?
