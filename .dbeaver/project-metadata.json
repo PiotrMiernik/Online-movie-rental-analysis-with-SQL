@@ -1,1 +1,0 @@
-{"resources":{"Scripts/DB creation.sql":{"default-datasource":"postgres-jdbc-192b3c4ba61-1af663b9b0543bca","default-catalog":"postgres","default-schema":"public"},"Scripts/Movie Rental.sql":{"default-schema":"public","default-datasource":"postgres-jdbc-192b3c4ba61-1af663b9b0543bca","default-catalog":"postgres"}}}
